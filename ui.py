@@ -1,4 +1,4 @@
-from db import list_of_players, VALID_POSITIONS, load_players
+from db import list_of_players, VALID_POSITIONS, remove_player_from_database, to_add_player
 
 def display_valid_positions():
      positions = ''
@@ -49,12 +49,35 @@ def display_lineup():
         print("Error loading player data from file. Please check the file locationa and structure and try again.")
 
 
-
 # Function to display the exit message      
 def exit_program():
     print('Goodbye!')
 
+def remove_player():
+    print(f'These are the players in the team: \n')
+    display_lineup()
+    player_to_delete = input('Enter the user to be removed: ')
+    result =remove_player_from_database(player_to_delete)
+    #print(f'Player {player_to_delete} has been removed from the team.')
+    print(result) 
 
+
+def add_player():
+    name = input('Enter the name of the player to add: ')
+    position = input('Enter the position of the player to add: ')
+    while position not in VALID_POSITIONS:
+        print(f'Invalid position. Please enter a valid position from the following list: {display_valid_positions()}')
+        position = input('Enter the position of the player to add: ')   
+    at_bat = input('Enter the number of at-bats for the player to add: ')
+    while not at_bat.isdigit():
+        print('Invalid input. Please enter a valid number for at-bats.')
+        at_bat = input('Enter the number of "At bats" for the player to add: ')
+    hits = input('Enter the number of "Hits" for the player to add: ')
+    while not hits.isdigit():
+        print('Invalid input. Please enter a valid number for hits.')
+        hits = input('Enter the number of hits for the player to add: ')    
+    result = to_add_player(name, position, at_bat, hits)
+    print(result)
 
 #load_players()  # delete after testing
 #display_lineup()  # delete after testing
