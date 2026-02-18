@@ -1,7 +1,7 @@
 from ui import *
 from db import *
 
-load_players()
+db_load_players()
 user_choice = display_main_menu()
 while True:
     match user_choice:
@@ -21,7 +21,7 @@ while True:
             edit_player_position()
             user_choice = select_option()
         case '6':
-            edit_player_status()
+            edit_player_stats()
             user_choice = select_option()
         case '7':
             exit_program()
