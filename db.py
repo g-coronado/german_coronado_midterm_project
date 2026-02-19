@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+import os
 
 VALID_POSITIONS = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P']
 list_of_players = []
