@@ -1,10 +1,9 @@
-player_name,position,at_bat,hits,average
-Tommy La Stella,3B,1316,360,0.274
-Mike Yastrzemski,RF,563,168,0.298
-Buster Posey,C,4575,1380,0.302
-Brandon Belt,1B,3811,1003,0.263
-Austin Slater,CF,569,147,0.258
-Brandon Crawford,SS,4402,1099,0.25
-Kevin Gausman,P,56,2,0.036
-Donovan Solano,2B,1473,407,0.276
-Alex Dickerson,LF,586,160,0.273
+Mike Yastrzemski,RF,563,168
+Buster Posey,C,4575,1380
+Brandon Belt,1B,3811,1003
+Austin Slater,CF,569,147
+Brandon Crawford,SS,4402,1099
+Kevin Gausman,P,56,2
+Donovan Solano,2B,1473,407
+Alex Dickerson,LF,586,160
+Tommy La Stella,3B,1316,360

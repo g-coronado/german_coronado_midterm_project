@@ -7,21 +7,23 @@ list_of_players = []
 FILENAME = Path(__file__).parent /"players.csv"
 
 def db_load_players():
-    players = pd.read_csv(FILENAME)
+    players = pd.read_csv(FILENAME, header=0)
     number_of_rows = players.shape[0]
     number_of_columns = players.shape[1]
     for row in range(number_of_rows):
         player = []
-        player.append(row + 1)
+        player.append(row+1)
         for column in range(number_of_columns):
             real_value = players.iloc[row, column]
             if hasattr(real_value, 'item'):
                 real_value = real_value.item()
             player.append(real_value)
+        average = format(round(int(player[4]) / int(player[3]), 3),"0.3f")
+        player.append(average)
         list_of_players.append(player)
 
 def db_add_player(name, position, at_bat, hits):
-    average = round(int(hits) / int(at_bat), 3)
+    average = format(round(int(hits) / int(at_bat), 3),"0.3f")
     new_player = [len(list_of_players) + 1, name, position, at_bat, hits, average]
     try:
         list_of_players.append(new_player)
@@ -60,8 +62,8 @@ def db_edit_player_stats():
 
 def update_file():
     to_update = pd.DataFrame(list_of_players, columns=["index", "player_name", "position", "at_bat", "hits", "average"])
-    to_update = to_update.drop(columns=["index"])   # remove index column    
-    to_update.to_csv(FILENAME, index=False)
+    to_update = to_update.drop(columns=["index", "average"])   # remove index column    
+    to_update.to_csv(FILENAME, index=False, header=False)
 
 
 # print(load_players())  # delete after testing
