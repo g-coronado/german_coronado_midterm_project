@@ -2,12 +2,12 @@ import pandas as pd
 from pathlib import Path
 import os
 
-VALID_POSITIONS = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P']
+VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
 list_of_players = []
 FILENAME = Path(__file__).parent /"players.csv"
 
 def db_load_players():
-    players = pd.read_csv(FILENAME, header=0)
+    players = pd.read_csv(FILENAME, header=None)
     number_of_rows = players.shape[0]
     number_of_columns = players.shape[1]
     for row in range(number_of_rows):
@@ -18,12 +18,12 @@ def db_load_players():
             if hasattr(real_value, 'item'):
                 real_value = real_value.item()
             player.append(real_value)
-        average = format(round(int(player[4]) / int(player[3]), 3),"0.3f")
+        average = average_calculator(player[4], player[3])
         player.append(average)
         list_of_players.append(player)
 
 def db_add_player(name, position, at_bat, hits):
-    average = format(round(int(hits) / int(at_bat), 3),"0.3f")
+    average = average_calculator(hits, at_bat)
     new_player = [len(list_of_players) + 1, name, position, at_bat, hits, average]
     try:
         list_of_players.append(new_player)
@@ -57,15 +57,29 @@ def db_edit_player_position(lineup_number_to_edit, new_position):
         message = f"Error updating player position. Please check the file location and structure and try again."
     return message
 
-def db_edit_player_stats():
-    print("Edit player stats option, on db.py")
-
+def db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits):
+    try:
+        average = average_calculator(new_hits, new_ab)
+        list_of_players[lineup_number_to_edit - 1][3] = new_ab
+        list_of_players[lineup_number_to_edit - 1][4] = new_hits
+        list_of_players[lineup_number_to_edit - 1][5] = average
+        update_file()
+        message = f'{list_of_players[lineup_number_to_edit - 1][1]} has been updated with new stats.'
+    except:
+        message = f"Error updating player stats. Please check the file location and structure and try again."
+    return message
+    
 def update_file():
     to_update = pd.DataFrame(list_of_players, columns=["index", "player_name", "position", "at_bat", "hits", "average"])
     to_update = to_update.drop(columns=["index", "average"])   # remove index column    
     to_update.to_csv(FILENAME, index=False, header=False)
 
-
+def average_calculator(hits, at_bat):
+    try:
+        average = format(round(int(hits) / int(at_bat), 3),"0.3f")
+    except ZeroDivisionError:
+        average = "0.000"
+    return average
 # print(load_players())  # delete after testing
 # print (len(VALID_POSITIONS ))
 

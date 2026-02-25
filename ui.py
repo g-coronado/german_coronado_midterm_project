@@ -43,8 +43,6 @@ def display_lineup():
         print ('----------------------------------------------------------------------')
         for player_info in list_of_players:
             print(f'{player_info[0]:<7} {player_info[1]:<21} {player_info[2]:<7} {player_info[3]:<8} {player_info[4]:<6} {player_info[5]:<6}')
-               
-
     except:
         print("Error loading player data from file. Please check the file locationa and structure and try again.")
 
@@ -95,7 +93,26 @@ def edit_player_position():
     print(result)
     
 def edit_player_stats():
-    print("Edit player stats option, on ui.py")
+    length_of_list = len(list_of_players)
+    while True:
+        lineup_number_to_edit = input('Lineup number to edit: ')
+        if lineup_number_to_edit.isdigit() and 1 <= int(lineup_number_to_edit) <= length_of_list:
+            break
+        else:
+            print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
+    lineup_number_to_edit = int(lineup_number_to_edit)
+    print(f'{list_of_players[lineup_number_to_edit - 1][1]} has been selected.')
+    new_ab = input('New At Bat statistics: ')
+
+    while not new_ab.isdigit():
+        print('Invalid input. Please enter a valid number for at-bats.')
+        new_ab = input('New At Bat statistics: ')
+    new_hits = input('New Hits statistics: ')
+    while not new_hits.isdigit():
+        print('Invalid input. Please enter a valid number for hits.')
+        new_hits = input('New Hits statistics: ')
+    result = db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits)
+    print(result)
 
 def move_player():
     print("Move player option, on ui.py")
