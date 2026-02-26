@@ -1,4 +1,4 @@
-from db import list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
+from db import db_load_players, db_move_player, list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
 
 def display_valid_positions():
      positions = ''
@@ -68,10 +68,17 @@ def add_player():
     while not at_bat.isdigit():
         print('Invalid input. Please enter a valid number for at-bats.')
         at_bat = input('Enter the number of "At bats" for the player to add: ')
-    hits = input('Enter the number of "Hits" for the player to add: ')
+    if int(at_bat) == 0:
+        print('Setting at-bats to 0 sets automatically hits to 0 for this player.')
+        hits = '0'
+    else:
+        hits = input('Enter the number of "Hits" for the player to add: ')
     while not hits.isdigit():
         print('Invalid input. Please enter a valid number for hits.')
-        hits = input('Enter the number of hits for the player to add: ')    
+        hits = input('Enter the number of hits for the player to add: ') 
+    while int(hits) > int(at_bat):
+        print(f'Hits cannot be greater than at-bats. Please enter a number less than or equal to {at_bat}.')
+        hits = input('Enter the number of hits for the player to add: ')   
     result = db_add_player(name, position, at_bat, hits)
     print(result)
 
@@ -103,19 +110,72 @@ def edit_player_stats():
     lineup_number_to_edit = int(lineup_number_to_edit)
     print(f'{list_of_players[lineup_number_to_edit - 1][1]} has been selected.')
     new_ab = input('New At Bat statistics: ')
-
     while not new_ab.isdigit():
         print('Invalid input. Please enter a valid number for at-bats.')
         new_ab = input('New At Bat statistics: ')
-    new_hits = input('New Hits statistics: ')
+    if int(new_ab) == 0:
+        print('Setting at-bats to 0 sets automatically hits to 0 for this player.')
+        new_hits = '0'
+    else:
+        new_hits = input('New Hits statistics: ')
     while not new_hits.isdigit():
         print('Invalid input. Please enter a valid number for hits.')
         new_hits = input('New Hits statistics: ')
+    while int(new_hits) > int(new_ab):
+        print(f'Hits cannot be greater than at-bats. Please enter a number less than or equal to {new_ab}.')
+        new_hits = input('New Hits statistics: ')   
     result = db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits)
     print(result)
 
 def move_player():
-    print("Move player option, on ui.py")
+    length_of_list = len(list_of_players)
+    while True:
+        lineup_number_to_move = input('Lineup number to move: ')
+        if lineup_number_to_move.isdigit() and 1 <= int(lineup_number_to_move) <= length_of_list:
+            break
+        else:
+            print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
+    lineup_number_to_move = int(lineup_number_to_move)
+    print(f'{list_of_players[lineup_number_to_move - 1][1]} has been selected.')
+    while True:
+        new_lineup_number = input('Enter the new Lineup number: ')
+        if new_lineup_number.isdigit() and 1 <= int(new_lineup_number) <= length_of_list:
+            break
+        else:
+            print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
+    new_lineup_number = int(new_lineup_number)
+    result = db_move_player(lineup_number_to_move, new_lineup_number)
+    print(result)
+
+
+db_load_players()
+user_choice = display_main_menu()
+while True:
+    match user_choice:
+        case '1':
+            display_lineup()
+            user_choice = select_option()
+        case '2':
+            add_player()
+            user_choice = select_option()
+        case '3':
+            remove_player()
+            user_choice = select_option()
+        case '4':
+            move_player()
+            user_choice = select_option()
+        case '5':
+            edit_player_position()
+            user_choice = select_option()
+        case '6':
+            edit_player_stats()
+            user_choice = select_option()
+        case '7':
+            exit_program()
+            break
+        case _:
+            print("That is an invalid option. Please try again and select a valid option from the menu.")
+            user_choice = display_main_menu()
 
 #load_players()  # delete after testing
 #display_lineup()  # delete after testing

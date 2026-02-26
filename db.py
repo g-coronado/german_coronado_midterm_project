@@ -45,8 +45,15 @@ def db_remove_player(player_to_delete):
         message = f"Error removing player {player_to_delete} from the team. Please check the file location and structure and try again."
     return message
 
-def db_move_player():
-    print("Move player option, on db.py")
+def db_move_player(lineup_number_to_move, new_lineup_number):
+    player_to_move = list_of_players.pop(lineup_number_to_move - 1)
+    list_of_players.insert(new_lineup_number - 1, player_to_move)
+    number_of_rows = len(list_of_players)
+    for i in range(number_of_rows):
+        list_of_players[i][0] = i + 1
+    update_file()
+    return f'{player_to_move[1]} has been moved to lineup position {new_lineup_number}.'
+    
 
 def db_edit_player_position(lineup_number_to_edit, new_position):
     try:
