@@ -6,6 +6,7 @@ VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
 list_of_players = []
 FILENAME = Path(__file__).parent /"players.csv"
 
+
 def db_load_players():
     players = pd.read_csv(FILENAME, header=None)
     number_of_rows = players.shape[0]
@@ -22,6 +23,7 @@ def db_load_players():
         player.append(average)
         list_of_players.append(player)
 
+
 def db_add_player(name, position, at_bat, hits):
     average = average_calculator(hits, at_bat)
     new_player = [len(list_of_players) + 1, name, position, at_bat, hits, average]
@@ -32,6 +34,7 @@ def db_add_player(name, position, at_bat, hits):
     except:
         message = f"Error adding player {name} to the team. Please check the file location and structure and try again."
     return message
+
 
 def db_remove_player(player_to_delete):
     try:
@@ -44,6 +47,7 @@ def db_remove_player(player_to_delete):
     except:
         message = f"Error removing player {player_to_delete} from the team. Please check the file location and structure and try again."
     return message
+
 
 def db_move_player(lineup_number_to_move, new_lineup_number):
     player_to_move = list_of_players.pop(lineup_number_to_move - 1)
@@ -64,6 +68,7 @@ def db_edit_player_position(lineup_number_to_edit, new_position):
         message = f"Error updating player position. Please check the file location and structure and try again."
     return message
 
+
 def db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits):
     try:
         average = average_calculator(new_hits, new_ab)
@@ -75,11 +80,13 @@ def db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits):
     except:
         message = f"Error updating player stats. Please check the file location and structure and try again."
     return message
-    
+
+
 def update_file():
     to_update = pd.DataFrame(list_of_players, columns=["index", "player_name", "position", "at_bat", "hits", "average"])
     to_update = to_update.drop(columns=["index", "average"])   # remove index column    
     to_update.to_csv(FILENAME, index=False, header=False)
+
 
 def average_calculator(hits, at_bat):
     try:
@@ -87,7 +94,6 @@ def average_calculator(hits, at_bat):
     except ZeroDivisionError:
         average = "0.000"
     return average
-# print(load_players())  # delete after testing
-# print (len(VALID_POSITIONS ))
+
 
 

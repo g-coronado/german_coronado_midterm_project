@@ -1,3 +1,5 @@
+from unittest import case
+
 from db import db_load_players, db_move_player, list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
 
 def display_valid_positions():
@@ -12,7 +14,7 @@ def display_valid_positions():
             counter += 1
      return(positions)
 
-# Function to display the main menu
+
 def display_main_menu():
         print('======================================================================')
         print(f'\n                    Baseball Team Manager')
@@ -27,36 +29,30 @@ def display_main_menu():
         print(f'\nPOSITIONS')
         print(display_valid_positions())
         print('======================================================================')
-        user_choice = select_option()
-        # user_choice = input('Please select an option: ')
-        return user_choice
+        return input(f'\nMenu option: ')
 
-# Function to prompt the user to select an option from the menu
-def select_option():
-    return input(f'\nMenu option: ')
 
-# Function to display the lineup
 def display_lineup():
+    print ('        Player                POS     AB       H      AVG')
+    print ('----------------------------------------------------------------------')
     try:
-        # display_players = load_players()
-        print ('        Player                POS     AB       H      AVG')
-        print ('----------------------------------------------------------------------')
+
         for player_info in list_of_players:
             print(f'{player_info[0]:<7} {player_info[1]:<21} {player_info[2]:<7} {player_info[3]:<8} {player_info[4]:<6} {player_info[5]:<6}')
     except:
         print("Error loading player data from file. Please check the file locationa and structure and try again.")
 
-# Function to display the exit message      
+
 def exit_program():
     print('Goodbye!')
+
 
 def remove_player():
     print(f'These are the players in the team: \n')
     display_lineup()
     player_to_delete = input('Enter the user to be removed: ')
-    result =db_remove_player(player_to_delete)
-    #print(f'Player {player_to_delete} has been removed from the team.')
-    print(result) 
+    print(db_remove_player(player_to_delete)) 
+
 
 def add_player():
     name = input('Enter the name of the player to add: ')
@@ -82,6 +78,7 @@ def add_player():
     result = db_add_player(name, position, at_bat, hits)
     print(result)
 
+
 def edit_player_position():
     length_of_list = len(list_of_players)
     while True:
@@ -98,7 +95,8 @@ def edit_player_position():
         new_position = input('New position: ')
     result = db_edit_player_position(lineup_number_to_edit, new_position)
     print(result)
-    
+ 
+   
 def edit_player_stats():
     length_of_list = len(list_of_players)
     while True:
@@ -127,6 +125,7 @@ def edit_player_stats():
     result = db_edit_player_stats(lineup_number_to_edit, new_ab, new_hits)
     print(result)
 
+
 def move_player():
     length_of_list = len(list_of_players)
     while True:
@@ -148,34 +147,36 @@ def move_player():
     print(result)
 
 
-db_load_players()
-user_choice = display_main_menu()
-while True:
-    match user_choice:
-        case '1':
-            display_lineup()
-            user_choice = select_option()
-        case '2':
-            add_player()
-            user_choice = select_option()
-        case '3':
-            remove_player()
-            user_choice = select_option()
-        case '4':
-            move_player()
-            user_choice = select_option()
-        case '5':
-            edit_player_position()
-            user_choice = select_option()
-        case '6':
-            edit_player_stats()
-            user_choice = select_option()
-        case '7':
-            exit_program()
-            break
-        case _:
-            print("That is an invalid option. Please try again and select a valid option from the menu.")
-            user_choice = display_main_menu()
+def main():
+    db_load_players()
+    user_choice = display_main_menu()
+    while True:
+        match user_choice:
+            case '1':
+                display_lineup()
+                user_choice = input(f'\nMenu option: ')
+            case '2':
+                add_player()
+                user_choice = input(f'\nMenu option: ')
+            case '3':
+                remove_player()
+                user_choice = input(f'\nMenu option: ')
+            case '4':
+                move_player()
+                user_choice = input(f'\nMenu option: ')
+            case '5':
+                edit_player_position()
+                user_choice = input(f'\nMenu option: ')
+            case '6':
+                edit_player_stats()
+                user_choice = input(f'\nMenu option: ')
+            case '7':
+                exit_program()
+                break
+            case _:
+                print("That is an invalid option. Please try again and select a valid option from the menu.")
+                user_choice = display_main_menu()
 
-#load_players()  # delete after testing
-#display_lineup()  # delete after testing
+
+if __name__ == "__main__":
+    main()
