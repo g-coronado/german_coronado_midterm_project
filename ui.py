@@ -36,7 +36,7 @@ def display_lineup():
     print ('        Player                POS     AB       H      AVG')
     print ('----------------------------------------------------------------------')
     try:
-
+        
         for player_info in list_of_players:
             print(f'{player_info[0]:<7} {player_info[1]:<21} {player_info[2]:<7} {player_info[3]:<8} {player_info[4]:<6} {player_info[5]:<6}')
     except:
