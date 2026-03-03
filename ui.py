@@ -1,6 +1,12 @@
-from unittest import case
-
+#from unittest import case
+import subprocess
+from datetime import date
 from db import db_load_players, db_move_player, list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
+
+today_date = date.today()
+empty_space = ' '
+dash_space = '-'
+equal_space = '='
 
 def display_valid_positions():
      positions = ''
@@ -15,9 +21,44 @@ def display_valid_positions():
      return(positions)
 
 
-def display_main_menu():
-        print('======================================================================')
+def game_information():
+    game_list = []
+    subprocess.run('cls', shell=True)
+    print(f'Welcome to the Baseball Team Manager!')
+    print(f'Please enter the date of the next game to get started.')
+    
+    game_year = input(f'\nEnter the year of the next game: ')
+    while not game_year.isdigit():
+        print(f'Invalid input. Please enter a valid year for the game.')
+        game_year = input(f'\nEnter the year of the next game: ')
+    game_list.append(int(game_year))
+    
+    game_month = input(f'\nEnter the month of the next game: ')
+    while not game_month.isdigit() or int(game_month) < 1 or int(game_month) > 12:
+        print(f'Invalid input. Please enter a valid month for the next game between 1 and 12.')
+        game_month = input(f'\nEnter the month of the next game: ')
+    game_list.append(int(game_month))
+    
+    game_day = input(f'\nEnter the day of the next game: ')
+    while not game_day.isdigit() or int(game_day) < 1 or int(game_day) > 31:
+        print(f'Invalid input. Please enter a valid day for the next game between 1 and 31.')
+        game_day = input(f'\nEnter the day of the next game: ') 
+    game_list.append(int(game_day))
+    
+    days_until_game = (date(int(game_year), int(game_month), int(game_day)) - today_date).days
+    if days_until_game < 0:
+        game_list.append(' ')
+    else:
+        game_list.append(days_until_game)
+    return game_list
+
+def display_main_menu(next_game_list):
+        subprocess.run('cls', shell=True)
+        print(equal_space*64)
         print(f'\n                    Baseball Team Manager')
+        print(f'CURRENT DATE:{empty_space*5}{today_date.strftime("%Y-%m-%d")}')
+        print(f'GAME DATE:{empty_space*8}{(next_game_list[0])}-{(next_game_list[1]):02d}-{(next_game_list[2]):02d}')
+        print(f'DAYS UNTIL GAME:{empty_space*2}{next_game_list[3]}')
         print(f'\nMENU OPTIONS')
         print('1 - Display lineup')
         print('2 - Add player')
@@ -28,13 +69,13 @@ def display_main_menu():
         print('7 - Exit program')
         print(f'\nPOSITIONS')
         print(display_valid_positions())
-        print('======================================================================')
+        print(equal_space*64)
         return input(f'\nMenu option: ')
 
 
 def display_lineup():
-    print ('        Player                POS     AB       H      AVG')
-    print ('----------------------------------------------------------------------')
+    print (f'\n{empty_space*8}Player{empty_space*16}POS{empty_space*5}AB{empty_space*7}H{empty_space*6}AVG')
+    print (dash_space*64)
     try:
         
         for player_info in list_of_players:
@@ -60,6 +101,7 @@ def add_player():
     while position not in VALID_POSITIONS:
         print(f'Invalid position. Please enter a valid position from the following list: {display_valid_positions()}')
         position = input('Enter the position of the player to add: ')   
+    
     at_bat = input('Enter the number of at-bats for the player to add: ')
     while not at_bat.isdigit():
         print('Invalid input. Please enter a valid number for at-bats.')
@@ -149,7 +191,8 @@ def move_player():
 
 def main():
     db_load_players()
-    user_choice = display_main_menu()
+    #next_game_information()
+    user_choice = display_main_menu(game_information())
     while True:
         match user_choice:
             case '1':
