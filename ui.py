@@ -1,7 +1,7 @@
 #from unittest import case
 import subprocess
 from datetime import date
-from db import db_load_players, db_move_player, list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
+from db import * #db_load_players, db_move_player, list_of_players, VALID_POSITIONS, db_remove_player, db_add_player, db_edit_player_position, db_edit_player_stats
 
 today_date = date.today()
 empty_space = ' '
@@ -55,7 +55,7 @@ def game_information():
 def display_main_menu(next_game_list):
         subprocess.run('cls', shell=True)
         print(equal_space*64)
-        print(f'\n                    Baseball Team Manager')
+        print(f'{empty_space*20}Baseball Team Manager\n')
         print(f'CURRENT DATE:{empty_space*5}{today_date.strftime("%Y-%m-%d")}')
         print(f'GAME DATE:{empty_space*8}{(next_game_list[0])}-{(next_game_list[1]):02d}-{(next_game_list[2]):02d}')
         print(f'DAYS UNTIL GAME:{empty_space*2}{next_game_list[3]}')
@@ -79,9 +79,9 @@ def display_lineup():
     try:
         
         for player_info in list_of_players:
-            print(f'{player_info[0]:<7} {player_info[1]:<21} {player_info[2]:<7} {player_info[3]:<8} {player_info[4]:<6} {player_info[5]:<6}')
+            print(f'{player_info['lineup']:<7} {player_info['name']:<21} {player_info['position']:<7} {player_info['at_bat']:<8} {player_info['hits']:<6} {player_info['average']:<6}')
     except:
-        print("Error loading player data from file. Please check the file locationa and structure and try again.")
+        print('Error loading player data from file. Please check the file location and structure, and try again.')
 
 
 def exit_program():
@@ -91,7 +91,7 @@ def exit_program():
 def remove_player():
     print(f'These are the players in the team: \n')
     display_lineup()
-    player_to_delete = input('Enter the user to be removed: ')
+    player_to_delete = input('Enter the player lineup number to be removed: ')
     print(db_remove_player(player_to_delete)) 
 
 
@@ -117,6 +117,7 @@ def add_player():
     while int(hits) > int(at_bat):
         print(f'Hits cannot be greater than at-bats. Please enter a number less than or equal to {at_bat}.')
         hits = input('Enter the number of hits for the player to add: ')   
+    
     result = db_add_player(name, position, at_bat, hits)
     print(result)
 
@@ -130,7 +131,7 @@ def edit_player_position():
         else:
             print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
     lineup_number_to_edit = int(lineup_number_to_edit)
-    print(f'{list_of_players[lineup_number_to_edit - 1][1]} has been selected.')
+    print(f'{list_of_players[lineup_number_to_edit - 1]['name']} has been selected.')
     new_position = input('New position: ')
     while new_position not in VALID_POSITIONS:
         print(f'Invalid position. Please enter a valid position from the following list: {display_valid_positions()}')
@@ -148,7 +149,7 @@ def edit_player_stats():
         else:
             print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
     lineup_number_to_edit = int(lineup_number_to_edit)
-    print(f'{list_of_players[lineup_number_to_edit - 1][1]} has been selected.')
+    print(f'{list_of_players[lineup_number_to_edit - 1]['name']} has been selected.')
     new_ab = input('New At Bat statistics: ')
     while not new_ab.isdigit():
         print('Invalid input. Please enter a valid number for at-bats.')
@@ -177,7 +178,7 @@ def move_player():
         else:
             print(f'Invalid input. Please enter a valid lineup number between 1 and {length_of_list}.')
     lineup_number_to_move = int(lineup_number_to_move)
-    print(f'{list_of_players[lineup_number_to_move - 1][1]} has been selected.')
+    print(f'{list_of_players[lineup_number_to_move - 1]['name']} has been selected.')
     while True:
         new_lineup_number = input('Enter the new Lineup number: ')
         if new_lineup_number.isdigit() and 1 <= int(new_lineup_number) <= length_of_list:
@@ -191,7 +192,8 @@ def move_player():
 
 def main():
     db_load_players()
-    #next_game_information()
+    #db_load_players_to_list_of_dictionary()
+
     user_choice = display_main_menu(game_information())
     while True:
         match user_choice:
