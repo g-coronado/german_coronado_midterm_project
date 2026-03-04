@@ -4,28 +4,11 @@ import os
 
 VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
 list_of_players = []
-list_of_players_dictionary = []
+
 FILENAME = Path(__file__).parent /"players.csv"
 
 
-def db_load_players_old():
-    players = pd.read_csv(FILENAME, header=None)
-    number_of_rows = players.shape[0]
-    number_of_columns = players.shape[1]
-    for row in range(number_of_rows):
-        player = []
-        player.append(row+1)
 
-        for column in range(number_of_columns):
-            real_value = players.iloc[row, column]
-
-            if hasattr(real_value, 'item'):
-                real_value = real_value.item()
-            player.append(real_value)
-
-        average = average_calculator(player[4], player[3])
-        player.append(average)
-        list_of_players.append(player)
 
 
 def db_load_players():
