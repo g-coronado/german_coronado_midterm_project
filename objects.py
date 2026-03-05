@@ -15,9 +15,9 @@ class Player:
     @property
     def batting_average(self):
         if self.at_bats == 0:
-            return 0.0
+            return format(0.0, '.3f')
         else:
-            return round(self.hits / self.at_bats, 3)
+            return format(round(self.hits / self.at_bats, 3), '.3f')
 
 
 @dataclass
