@@ -1,34 +1,30 @@
-import pandas as pd
-from pathlib import Path
 import sqlite3
+from pathlib import Path
+from tkinter import messagebox
 from contextlib import closing
 
 from objects import Player
 
-
-# Global connection object
-# Only one connection is maintained during program execution
 conn = None
 VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
 
 def connect():
     global conn
 
-    if conn:
-        return
+    if conn is not None:
+        return True   
 
     try:
         db_path = Path(__file__).parent / "players.db"
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
+        return True
 
     except sqlite3.Error as e:
-        print(f"Database connection failed: {e}")
+        messagebox.showerror("Database Error", f"Database connection failed:\n{e}")
         conn = None
         return False
-
-    return True
-
+    
 
 def close():
 
@@ -81,34 +77,29 @@ def get_players():
 def db_add_player(player):
     if not connect():
         return False 
-
-    sql_check = "SELECT playerID FROM Player WHERE playerID = ?"
-    with closing(conn.cursor()) as c:
-        c.execute(sql_check, (player.playerID,))
-        exists = c.fetchone()
-
-    if exists:
-        return False  
-
-    sql_insert = """
-        INSERT INTO Player (playerID, batOrder, firstName, lastName, position, atBats, hits)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """
-
-    with closing(conn.cursor()) as c:
-        c.execute(sql_insert, (
-            player.playerID,
-            player.batOrder,
-            player.firstName,
-            player.lastName,
-            player.position,
-            player.atBats,
-            player.hits
-        ))
-        conn.commit()
-
-        return c.rowcount == 1
     
+    sql_insert = """
+        INSERT INTO Player (batOrder, firstName, lastName, position, atBats, hits)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """
+    try:
+        with closing(conn.cursor()) as c:
+            c.execute(sql_insert, (
+                player.batOrder,
+                player.firstName,
+                player.lastName,
+                player.position,
+                player.atBats,
+                player.hits
+            ))
+
+            player.playerID = c.lastrowid
+            conn.commit()
+
+            return c.rowcount == 1
+    except Exception as e:
+        messagebox.showerror("SQL Error", f"Failed to insert player:\n{e}")
+        return False
 
 def db_remove_player(player_id):
     if not connect():
@@ -199,3 +190,12 @@ def db_move_player(player_id, new_bat_order):
         conn.commit()
 
     return True
+
+# Delete after testing
+def debug_print_schema():
+    connect()
+    with closing(conn.cursor()) as c:
+        c.execute("PRAGMA table_info(Player)")
+        rows = c.fetchall()
+        for r in rows:
+            print(tuple(r))
