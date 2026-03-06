@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from datetime import datetime, date
 import db
 
 
@@ -70,17 +71,76 @@ class PlayerController:
 # View Layer (Tkinter GUI)
 # =====================================================
 
+class StartWindow:
+    def __init__(self, root, on_success):
+        self.root = root
+        self.on_success = on_success
+
+        self.popup = tk.Toplevel(root, name="startwindow")
+        self.popup.title("Game Date")
+        self.popup.geometry("300x150")
+        self.popup.grab_set()
+
+        tk.Label(self.popup, text="Enter the game date (YYYY-MM-DD):").pack(pady=10)
+
+        self.date_var = tk.StringVar()
+        tk.Entry(self.popup, textvariable=self.date_var).pack()
+
+        tk.Button(self.popup, text="Continue", command=self.validate_date).pack(pady=10)
+
+        self.popup.update_idletasks()
+        self.popup.eval('tk::PlaceWindow .startwindow center')
+
+
+    def validate_date(self):
+        date_str = self.date_var.get().strip()
+
+        if date_str == "":
+            self.popup.destroy()
+            self.on_success("")  
+            return
+
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Invalid Date", "Use YYYY-MM-DD format.")
+            return
+
+        self.popup.destroy()
+        self.on_success(date_str)
+
 class PlayerApp(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, game_date):
         super().__init__(parent, padding=10)
 
         self.parent = parent
         self.controller = PlayerController()
-
+        self.game_date = game_date
+        self.days_until_game = self.calculate_days_until_game(game_date)
+        
         self.pack(fill="both", expand=True)
 
         self.create_widgets()
 
+
+    def calculate_days_until_game(self, game_date_str):
+        if not game_date_str:
+            return ""
+
+        try:
+            game_date = datetime.strptime(game_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return ""
+
+        today = date.today()
+        date_difference = (game_date - today).days
+
+        if date_difference < 0:
+            return ""
+
+        return date_difference    
+    
+    
     def load_players(self):
 
         self.controller.reload_players()
@@ -108,12 +168,22 @@ class PlayerApp(ttk.Frame):
 
         self.grid_columnconfigure(0, weight=1)   
         self.grid_columnconfigure(1, weight=0)   
+        
+        # HEADER ROW: Today, Game Date, Days Until Game
+        header = ttk.Frame(self)
+        header.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=5)
+
+        today_str = date.today().strftime("%Y-%m-%d")
+
+        ttk.Label(header, text=f"Today: {today_str}").grid(row=0, column=0, padx=(0, 20))
+        ttk.Label(header, text=f"Game Date: {self.game_date or ''}").grid(row=0, column=1, padx=(0, 20))
+        ttk.Label(header, text=f"Days Until Game: {self.days_until_game}").grid(row=0, column=2)        
 
     # -------------------------
     # LEFT SIDE: Player List
     # -------------------------
         left_frame = ttk.Frame(self)
-        left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        left_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
 
         columns = ("ID", "Bat order","First", "Last" ,"POS", "AB", "Hits", "AVG")
@@ -137,7 +207,7 @@ class PlayerApp(ttk.Frame):
     # RIGHT SIDE: Buttons
     # -------------------------
         right_frame = ttk.Frame(self)
-        right_frame.grid(row=0, column=1, sticky="ns", padx=10, pady=10)
+        right_frame.grid(row=1, column=1, sticky="ns", padx=10, pady=10)
 
 
         right_frame.grid_columnconfigure(0, weight=1)
@@ -479,12 +549,14 @@ def main():
 
     root = tk.Tk()
     root.title('Baseball Team Manager')
-    root.geometry("800x475")
-    #root.eval('tk::PlaceWindow . center')
+    root.geometry("800x500")
+    root.withdraw()
+    
+    def date_app(game_date):
+        root.deiconify()
+        PlayerApp(root, game_date)
 
-
-    PlayerApp(root)
-
+    StartWindow(root, date_app)
     root.mainloop()
 
     db.close()
