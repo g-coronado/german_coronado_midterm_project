@@ -33,7 +33,17 @@ class PlayerController:
         if success:
             self.players = [p for p in self.players if p.playerID == playerID]
         return success
+    
+    def edit_player_stats(self, player: Player):
+        existing = db.get_player_by_id(player.playerID)
+        if existing is None:
+            return False
 
+        return db.db_edit_player_stats(
+            player.playerID,
+            player.atBats,
+            player.hits
+        )
 
 
 
@@ -119,8 +129,8 @@ class PlayerApp(ttk.Frame):
         ttk.Button(right_frame, text="Add Player", command=self.open_add_player_window, width=button_width).grid(row=1, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Remove Player", command=self.open_remove_player_window, width=button_width).grid(row=2, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Move Player", width=button_width).grid(row=3, column=0, pady=5, sticky="ew")
-        ttk.Button(right_frame, text="Edit Position", width=button_width).grid(row=4, column=0, pady=5, sticky="ew")
-        ttk.Button(right_frame, text="Edit Stats", width=button_width).grid(row=5, column=0, pady=5, sticky="ew")
+        ttk.Button(right_frame, text="Edit Stats", command=self.open_edit_stats_window, width=button_width).grid(row=4, column=0, pady=5, sticky="ew")
+        ttk.Button(right_frame, text="Edit Position", width=button_width).grid(row=5, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Exit", command=self.parent.destroy,width=button_width).grid(row=6, column=0, pady=5, sticky="ew")
 
     # -----------------------------
@@ -200,6 +210,43 @@ class PlayerApp(ttk.Frame):
             command=popup.destroy   
         ).pack(side="left", padx=10)
 
+    def open_edit_stats_window(self):
+        popup = tk.Toplevel(self)
+        popup.title("Edit Player Stats")
+        popup.geometry("240x150")
+        popup.grid_columnconfigure(0, weight=0)
+        popup.grid_columnconfigure(1, weight=1)
+
+
+        ttk.Label(popup, text="Player ID").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
+        pid_var = tk.StringVar()
+        ttk.Entry(popup, textvariable=pid_var).grid(row=0, column=1, padx=10, pady=(5,5), sticky="ew")
+
+        ttk.Label(popup, text="At bat").grid(row=1, column=0, padx=10, pady=(5, 5), sticky="w")
+        ab_var = tk.StringVar()
+        ttk.Entry(popup, textvariable=ab_var).grid(row=1, column=1, padx=10, pady=(5,5), sticky="ew")
+
+        ttk.Label(popup, text="Hits").grid(row=2, column=0, padx=10, pady=(5, 5), sticky="w")
+        hits_var = tk.StringVar()
+        ttk.Entry(popup, textvariable=hits_var).grid(row=2, column=1, padx=10, pady=(5,5), sticky="ew")
+
+        button_frame = ttk.Frame(popup)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=15)
+
+        ttk.Button(
+            button_frame,
+            text="Save",
+            command=lambda: self.save_player_stats(
+                popup, pid_var.get(), ab_var.get(), hits_var.get()
+            )
+        ).pack(side="left", padx=10)
+
+        ttk.Button(
+            button_frame,
+            text="Cancel",
+            command=popup.destroy   
+        ).pack(side="left", padx=10)
+
 
     # -----------------------------
     # Save and remove handlers
@@ -254,11 +301,39 @@ class PlayerApp(ttk.Frame):
         messagebox.showinfo("Success", "Player removed.")
         popup.destroy()
 
-    def save_player_stats(self, popup, pid, first, last, pos):
-        # call your controller/db logic here
-        # db.db_add_player(...)
+
+    def save_player_stats(self, popup, pid, ab, hits):
+        try:
+            pid = int(pid)
+            ab = int(ab)
+            hits = int(hits)
+        except ValueError:
+            messagebox.showerror("Error", "Player ID, At Bats, and Hits must be numbers.")
+            return
+
+        if ab < 0 or hits < 0:
+            messagebox.showerror("Error", "Stats cannot be negative.")
+            return
+
+        if hits > ab:
+            messagebox.showerror("Error", "Hits cannot be greater than At Bats.")
+            return
+
+        player = Player(
+            playerID=pid,
+            atBats=ab,
+            hits=hits
+        )
+
+        success = self.controller.edit_player_stats(player)
+        if not success:
+            messagebox.showerror("Error", "Failed to edit player stats.")
+            return
+
+        self.load_players()
         messagebox.showinfo("Success", "Player Stats modified.")
         popup.destroy()
+
 
     def save_player_position(self, popup, pid, first, last, pos):
         # call your controller/db logic here

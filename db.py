@@ -193,6 +193,24 @@ def db_move_player(player_id, new_bat_order):
 
     return True
 
+def get_player_by_id(player_id):
+    connect()
+
+    query = """
+        SELECT playerID, batOrder, firstName, lastName, position, atBats, hits
+        FROM Player
+        WHERE playerID=?
+    """
+    with closing(conn.cursor()) as c:
+        c.execute(query,(player_id,))
+        row = c.fetchone()
+
+        if row is None:
+            return None
+
+    return make_player(row)
+
+
 # Delete after testing
 def debug_print_schema():
     connect()
