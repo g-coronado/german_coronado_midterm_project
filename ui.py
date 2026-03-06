@@ -1,5 +1,7 @@
 
 import subprocess
+import db
+
 from datetime import date
 from objects import Player
 from db import (
@@ -211,6 +213,7 @@ def exit_program():
 
 
 def main():
+    db.connect()
     global lineup
     lineup = db_load_players()
     user_choice = display_main_menu(game_information())
