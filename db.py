@@ -107,12 +107,14 @@ def db_remove_player(player_id):
 
     sql = "DELETE FROM Player WHERE playerID = ?"
 
-    with closing(conn.cursor()) as c:
-        c.execute(sql, (player_id,))
-        deleted = c.rowcount
-        conn.commit()
-
-    return deleted > 0
+    try:
+        with closing(conn.cursor()) as c:
+            c.execute(sql, (player_id,))
+            conn.commit()
+            return c.rowcount == 1
+    except Exception as e:
+        messagebox.showerror("SQL Error", f"Failed to delete player:\n{e}")
+        return False
 
 
 def db_edit_player_position(player_id, position):

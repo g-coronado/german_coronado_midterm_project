@@ -27,6 +27,14 @@ class PlayerController:
     def reload_players(self):
         self.players = db.get_players()
 
+    def remove_player(self, playerID):
+        success = db.db_remove_player(playerID)
+
+        if success:
+            self.players = [p for p in self.players if p.playerID == playerID]
+        return success
+
+
 
 
 # =====================================================
@@ -167,15 +175,13 @@ class PlayerApp(ttk.Frame):
     def open_remove_player_window(self):
         popup = tk.Toplevel(self)
         popup.title("Remove Player")
-        popup.geometry("240x215")
+        popup.geometry("275x85")
         popup.grid_columnconfigure(0, weight=0)
         popup.grid_columnconfigure(1, weight=1)
-
 
         ttk.Label(popup, text="Player ID").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
         pid_var = tk.StringVar()
         ttk.Entry(popup, textvariable=pid_var).grid(row=0, column=1, padx=10, pady=(5,5), sticky="ew")
-
 
         button_frame = ttk.Frame(popup)
         button_frame.grid(row=5, column=0, columnspan=2, pady=15)
@@ -183,7 +189,7 @@ class PlayerApp(ttk.Frame):
         ttk.Button(
             button_frame,
             text="Delete",
-            command=lambda: self.save_new_player(
+            command=lambda: self.remove_player(
                 popup, pid_var.get()
             )
         ).pack(side="left", padx=10)
@@ -196,7 +202,7 @@ class PlayerApp(ttk.Frame):
 
 
     # -----------------------------
-    # Save handlres
+    # Save and remove handlers
     # -----------------------------
     def save_new_player(self, popup, first, last, pos, ab, hits):
         try:
@@ -233,6 +239,19 @@ class PlayerApp(ttk.Frame):
 
         self.load_players()
         messagebox.showinfo("Success", "Player added.")
+        popup.destroy()
+
+    def remove_player(self, popup, pid):
+
+        success = self.controller.remove_player(pid)
+
+        if not success:
+            messagebox.showerror("Error", "Failed to remove player.")
+            return
+
+        self.load_players()
+
+        messagebox.showinfo("Success", "Player removed.")
         popup.destroy()
 
     def save_player_stats(self, popup, pid, first, last, pos):
