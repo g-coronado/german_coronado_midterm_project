@@ -55,6 +55,16 @@ class PlayerController:
             player.position
         )
 
+    def edit_player_order(self, player: Player):
+        existing = db.get_player_by_id(player.playerID)
+        if existing is None:
+            return False
+
+        return db.db_move_player(
+            player.playerID,
+            player.batOrder
+        )
+
 
 # =====================================================
 # View Layer (Tkinter GUI)
@@ -137,7 +147,7 @@ class PlayerApp(ttk.Frame):
         ttk.Button(right_frame, text="Display Lineup", width=button_width, command=self.load_players).grid(row=0, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Add Player", command=self.open_add_player_window, width=button_width).grid(row=1, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Remove Player", command=self.open_remove_player_window, width=button_width).grid(row=2, column=0, pady=5, sticky="ew")
-        ttk.Button(right_frame, text="Move Player", width=button_width).grid(row=3, column=0, pady=5, sticky="ew")
+        ttk.Button(right_frame, text="Move Player", command=self.open_move_player_window, width=button_width).grid(row=3, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Edit Stats", command=self.open_edit_stats_window, width=button_width).grid(row=4, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Edit Position", command=self.open_edit_position_window, width=button_width).grid(row=5, column=0, pady=5, sticky="ew")
         ttk.Button(right_frame, text="Exit", command=self.parent.destroy,width=button_width).grid(row=6, column=0, pady=5, sticky="ew")
@@ -289,6 +299,39 @@ class PlayerApp(ttk.Frame):
             command=popup.destroy   
         ).pack(side="left", padx=10)    
 
+    def open_move_player_window(self):
+        popup = tk.Toplevel(self)
+        popup.title("Edit order at bat")
+        popup.geometry("240x125")
+        popup.grid_columnconfigure(0, weight=0)
+        popup.grid_columnconfigure(1, weight=1)
+
+
+        ttk.Label(popup, text="Player ID").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
+        pid_var = tk.StringVar()
+        ttk.Entry(popup, textvariable=pid_var).grid(row=0, column=1, padx=10, pady=(5,5), sticky="ew")
+
+        ttk.Label(popup, text="Bat order").grid(row=1, column=0, padx=10, pady=(5, 5), sticky="w")
+        ab_var = tk.StringVar()
+        ttk.Entry(popup, textvariable=ab_var).grid(row=1, column=1, padx=10, pady=(5,5), sticky="ew")
+
+        button_frame = ttk.Frame(popup)
+        button_frame.grid(row=2, column=0, columnspan=2, pady=15)
+
+        ttk.Button(
+            button_frame,
+            text="Save",
+            command=lambda: self.save_move_player(
+                popup, pid_var.get(), ab_var.get()
+            )
+        ).pack(side="left", padx=10)
+
+        ttk.Button(
+            button_frame,
+            text="Cancel",
+            command=popup.destroy   
+        ).pack(side="left", padx=10)  
+
     # -----------------------------
     # Save and remove handlers
     # -----------------------------
@@ -381,7 +424,7 @@ class PlayerApp(ttk.Frame):
         try:
             pid = int(pid)
         except ValueError:
-            messagebox.showerror("Error", "Player ID, At Bats, and Hits must be numbers.")
+            messagebox.showerror("Error", "Player ID must be a number.")
             return
 
         if not pos.strip():
@@ -407,10 +450,24 @@ class PlayerApp(ttk.Frame):
         messagebox.showinfo("Success", "Player Position modified.")
         popup.destroy()
     
-    def save_moved_player(self, popup, pid, first, last, pos):
-        # call your controller/db logic here
-        # db.db_add_player(...)
+    def save_move_player(self, popup, pid, ab):
 
+        try:
+            pid = int(pid)
+            ab = int(ab)
+        except ValueError:
+            messagebox.showerror("Error", "Player ID and Order at bat must be numbers.")
+            return
+            
+        player = Player(
+            playerID=pid,
+            batOrder=ab
+        )
+
+        success = self.controller.edit_player_order(player)
+        if not success:
+            messagebox.showerror("Error", "Failed to edit bat order of player.")
+            return
         self.load_players()
         messagebox.showinfo("Success", "Player moved.")
         popup.destroy()
