@@ -22,4 +22,3 @@ class Player:
         else:
             return format(round(self.hits / self.atBats, 3), '.3f')
 
-    

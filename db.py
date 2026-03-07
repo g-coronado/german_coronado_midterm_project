@@ -6,7 +6,7 @@ from contextlib import closing
 from objects import Player
 
 conn = None
-VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
+#VALID_POSITIONS = ('C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P')
 
 def connect():
     global conn
@@ -209,6 +209,13 @@ def get_player_by_id(player_id):
             return None
 
     return make_player(row)
+
+def get_all_positions():
+    connect()
+    query = "SELECT positionName FROM POSITION ORDER BY positionName;"
+    with closing(conn.cursor()) as c:
+        c.execute(query)
+        return [row[0] for row in c.fetchall()]
 
 
 # Delete after testing

@@ -4,6 +4,7 @@ from datetime import datetime, date
 import db
 
 
+
 from objects import Player
 
 
@@ -88,8 +89,8 @@ class StartWindow:
 
         tk.Button(self.popup, text="Continue", command=self.validate_date).pack(pady=10)
 
-        self.popup.update_idletasks()
-        self.popup.eval('tk::PlaceWindow .startwindow center')
+        #self.popup.update_idletasks()
+        #self.popup.eval('tk::PlaceWindow .startwindow center')
 
 
     def validate_date(self):
@@ -110,13 +111,15 @@ class StartWindow:
         self.on_success(date_str)
 
 class PlayerApp(ttk.Frame):
-    def __init__(self, parent, game_date):
+    def __init__(self, parent, game_date, db_instance):
         super().__init__(parent, padding=10)
 
         self.parent = parent
+        self.db = db_instance
         self.controller = PlayerController()
         self.game_date = game_date
         self.days_until_game = self.calculate_days_until_game(game_date)
+
         
         self.pack(fill="both", expand=True)
 
@@ -337,23 +340,27 @@ class PlayerApp(ttk.Frame):
         ).pack(side="left", padx=10)
 
     def open_edit_position_window(self):
+        print(self.db) # delete after testing
+        positions = db.get_all_positions()
         popup = tk.Toplevel(self)
         popup.title("Edit Player Position")
-        popup.geometry("240x125")
+        popup.geometry("240x175")
         popup.grid_columnconfigure(0, weight=0)
         popup.grid_columnconfigure(1, weight=1)
 
+        ttk.Label(popup, text="Valid options: ").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
+        ttk.Label(popup, text=(positions)).grid(row=1, column=0, padx=10, pady=(5, 5), sticky="w")
 
-        ttk.Label(popup, text="Player ID").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
+        ttk.Label(popup, text="Player ID").grid(row=2, column=0, padx=10, pady=(5, 5), sticky="w")
         pid_var = tk.StringVar()
-        ttk.Entry(popup, textvariable=pid_var).grid(row=0, column=1, padx=10, pady=(5,5), sticky="ew")
+        ttk.Entry(popup, textvariable=pid_var).grid(row=2, column=1, padx=10, pady=(5,5), sticky="ew")
 
-        ttk.Label(popup, text="Position").grid(row=1, column=0, padx=10, pady=(5, 5), sticky="w")
+        ttk.Label(popup, text="Position").grid(row=3, column=0, padx=10, pady=(5, 5), sticky="w")
         pos_var = tk.StringVar()
-        ttk.Entry(popup, textvariable=pos_var).grid(row=1, column=1, padx=10, pady=(5,5), sticky="ew")
+        ttk.Entry(popup, textvariable=pos_var).grid(row=3, column=1, padx=10, pady=(5,5), sticky="ew")
 
         button_frame = ttk.Frame(popup)
-        button_frame.grid(row=2, column=0, columnspan=2, pady=15)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=15)
 
         ttk.Button(
             button_frame,
@@ -370,42 +377,20 @@ class PlayerApp(ttk.Frame):
         ).pack(side="left", padx=10)    
 
     def open_move_player_window(self):
-        popup = tk.Toplevel(self)
-        popup.title("Edit order at bat")
-        popup.geometry("240x125")
-        popup.grid_columnconfigure(0, weight=0)
-        popup.grid_columnconfigure(1, weight=1)
-
-
-        ttk.Label(popup, text="Player ID").grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
-        pid_var = tk.StringVar()
-        ttk.Entry(popup, textvariable=pid_var).grid(row=0, column=1, padx=10, pady=(5,5), sticky="ew")
-
-        ttk.Label(popup, text="Bat order").grid(row=1, column=0, padx=10, pady=(5, 5), sticky="w")
-        ab_var = tk.StringVar()
-        ttk.Entry(popup, textvariable=ab_var).grid(row=1, column=1, padx=10, pady=(5,5), sticky="ew")
-
-        button_frame = ttk.Frame(popup)
-        button_frame.grid(row=2, column=0, columnspan=2, pady=15)
-
-        ttk.Button(
-            button_frame,
-            text="Save",
-            command=lambda: self.save_move_player(
-                popup, pid_var.get(), ab_var.get()
-            )
-        ).pack(side="left", padx=10)
-
-        ttk.Button(
-            button_frame,
-            text="Cancel",
-            command=popup.destroy   
-        ).pack(side="left", padx=10)  
+        messagebox.showerror(
+        "Not Allowed",
+        "Changing the batting order is not permitted.")
 
     # -----------------------------
     # Save and remove handlers
     # -----------------------------
     def save_new_player(self, popup, first, last, pos, ab, hits):
+        if not ab.strip():
+            ab = 0
+        if not hits.strip():
+            hits = 0
+
+        
         try:
             ab = int(ab)
             hits = int(hits)
@@ -413,9 +398,26 @@ class PlayerApp(ttk.Frame):
             messagebox.showerror("Error", "At Bats, and Hits must be numbers.")
             return
         
+        if hits > ab:
+            messagebox.showerror("Error", "Hits cannot be greater than At Bats.")
+            return
 
         if not first.strip() or not last.strip() or not pos.strip():
             messagebox.showerror("Error", "First Name, Last Name, and Position cannot be empty.")
+            return
+
+        if not first.replace(" ", "").isalpha():
+            messagebox.showerror("Error", "First Name cannot contain numbers or symbols.")
+            return
+
+        if not last.replace(" ", "").isalpha():
+            messagebox.showerror("Error", "Last Name cannot contain numbers or symbols.")
+            return
+
+
+        valid_positions = db.get_all_positions()
+        if pos not in valid_positions:
+            messagebox.showerror("Error", f"Invalid position. Valid options are: {valid_positions}")
             return
 
         self.controller.reload_players()
@@ -444,6 +446,16 @@ class PlayerApp(ttk.Frame):
 
     def remove_player(self, popup, pid):
 
+        
+        if not pid.strip():
+            messagebox.showerror("Error", "Player ID cannot be empty.")
+            return
+        try:
+            pid = int(pid)
+        except ValueError:
+            messagebox.showerror("Error", "Player ID must be a number.")
+            return
+
         success = self.controller.remove_player(pid)
 
         if not success:
@@ -457,6 +469,11 @@ class PlayerApp(ttk.Frame):
 
 
     def save_player_stats(self, popup, pid, ab, hits):
+        if not ab.strip():
+            ab = 0
+        if not hits.strip():
+            hits = 0
+        
         try:
             pid = int(pid)
             ab = int(ab)
@@ -471,6 +488,11 @@ class PlayerApp(ttk.Frame):
 
         if hits > ab:
             messagebox.showerror("Error", "Hits cannot be greater than At Bats.")
+            return
+
+        existing = db.get_player_by_id(pid)
+        if existing is None:
+            messagebox.showerror("Error", f"Player ID {pid} does not exist.")
             return
 
         player = Player(
@@ -502,10 +524,16 @@ class PlayerApp(ttk.Frame):
             return
         
         else:
-            if pos not in db.VALID_POSITIONS:
-                messagebox.showerror("Error", f"Not a valid position. {db.VALID_POSITIONS}")
+            valid_positions = db.get_all_positions()
+            if pos not in valid_positions:
+                messagebox.showerror("Error", f"Not a valid position. {valid_positions}")
                 return
-            
+
+        existing = db.get_player_by_id(pid)
+        if existing is None:
+            messagebox.showerror("Error", f"Player ID {pid} does not exist.")
+            return
+
         player = Player(
             playerID=pid,
             position=pos
@@ -521,32 +549,15 @@ class PlayerApp(ttk.Frame):
         popup.destroy()
     
     def save_move_player(self, popup, pid, ab):
-
-        try:
-            pid = int(pid)
-            ab = int(ab)
-        except ValueError:
-            messagebox.showerror("Error", "Player ID and Order at bat must be numbers.")
-            return
-            
-        player = Player(
-            playerID=pid,
-            batOrder=ab
-        )
-
-        success = self.controller.edit_player_order(player)
-        if not success:
-            messagebox.showerror("Error", "Failed to edit bat order of player.")
-            return
-        self.load_players()
-        messagebox.showinfo("Success", "Player moved.")
+        messagebox.showerror("Error", "Move the order at bat is not allowed.")
+        
         popup.destroy()
 
 def main():
 
     db.connect()
     #b.debug_print_schema()  # Delete after testing
-
+    #positions = db.get_all_positions()
     root = tk.Tk()
     root.title('Baseball Team Manager')
     root.geometry("800x500")
@@ -554,7 +565,7 @@ def main():
     
     def date_app(game_date):
         root.deiconify()
-        PlayerApp(root, game_date)
+        PlayerApp(root, game_date, db_instance=db)
 
     StartWindow(root, date_app)
     root.mainloop()
